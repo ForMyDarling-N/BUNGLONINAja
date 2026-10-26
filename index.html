@@ -2,225 +2,295 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>BUNGLONIN — Rute Kurir</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#0a0f1c">
+<title>BUNGLONIN - Rute Kurir</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--bg:#0b1020;--panel:#121c30;--panel2:#192741;--line:#293a55;--txt:#f4f7ff;--muted:#aab8d0;--orange:#ff8b2b;--green:#24c78a;--blue:#68aaff;--red:#ff6678}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
-button,input,select,textarea{font:inherit}
-button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;background:var(--orange);color:#241407;cursor:pointer;transition:transform .06s ease,opacity .1s}
+:root{
+  --bg:#0a0f1c; --panel:#121a2b; --panel2:#1a2438; --line:#2a3a55;
+  --txt:#f5f8ff; --muted:#9fb0cc; --muted2:#6f82a3;
+  --orange:#ff8b2b; --orange-d:#241407;
+  --green:#20c58a; --green-d:#04241a;
+  --blue:#5fa8ff; --red:#ff5c73; --red-d:#ffd9df;
+  --radius:16px; --radius-sm:12px;
+  --shadow:0 8px 24px rgba(0,0,0,.35);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--txt);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  overscroll-behavior-y:contain;
+  padding-bottom:calc(80px + var(--safe-b));
+  color-scheme:dark;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;cursor:pointer;border-radius:var(--radius-sm);font-weight:700;transition:transform .06s ease,filter .15s ease;touch-action:manipulation}
 button:active{transform:scale(.97)}
 button:disabled{opacity:.45;cursor:not-allowed}
-.secondary{background:#263651;color:var(--txt);border:1px solid #3b4d6c}
-.green{background:var(--green);color:#062719}
-.danger{background:#4c2635;color:#ffdce3}
-.blue{background:#1f4a7a;color:#dbeaff}
-.top{position:sticky;top:0;z-index:900;background:#101a2ded;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:12px 15px;display:flex;align-items:center;gap:12px}
-.brand{font-size:20px;font-weight:900;letter-spacing:.5px}
+
+/* TOP BAR */
+.top{
+  position:sticky;top:0;z-index:900;
+  background:rgba(10,15,28,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  padding:calc(10px + var(--safe-t)) 16px 10px;
+  display:flex;align-items:center;gap:12px;
+}
+.brand{font-size:19px;font-weight:900;letter-spacing:.3px}
 .brand span{color:var(--orange)}
-.tag{font-size:11px;color:var(--muted)}
-.menu{font-size:20px;background:#24334d;color:white;padding:8px 12px}
-.shell{max-width:1200px;margin:auto;padding:14px}
-.nav{display:flex;gap:8px;overflow:auto;padding-bottom:12px;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
-.nav button{white-space:nowrap;background:#1b2941;color:#c6d4ea;border:1px solid var(--line)}
-.nav button.active{background:var(--orange);color:#241407;border-color:var(--orange)}
+.tag{font-size:11px;color:var(--muted2);letter-spacing:.2px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--txt);
+}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.icon-btn{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--panel2);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:12px;font-weight:bold;
+}
+
+/* SHELL */
+.shell{max-width:1200px;margin:auto;padding:14px 14px 24px}
+.tabbar{display:none;gap:6px;margin-bottom:14px}
+@media(min-width:900px){
+  .tabbar{display:flex}
+  body{padding-bottom:24px}
+  .bottomnav{display:none!important}
+}
+.tabbar button{flex:1;padding:12px;background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:14px}
+.tabbar button.active{background:var(--orange);color:var(--orange-d);border-color:var(--orange)}
+
+/* LAYOUT */
 .layout{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:900px){.layout{grid-template-columns:400px minmax(0,1fr)}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:13px;min-width:0}
-.card h2{font-size:16px;margin:0 0 10px}
-.muted{color:var(--muted);font-size:13px}
-.uploadbox{border:1.5px dashed #526787;background:#0e1728;border-radius:14px;padding:16px;text-align:center}
-.uploadbox input{display:block;width:100%;margin:12px 0;color:var(--muted);font-size:13px}
-.thumbs{display:flex;gap:8px;overflow:auto;margin-top:10px;padding-bottom:4px}
-.thumbs img{height:112px;width:auto;max-width:160px;object-fit:contain;border-radius:9px;border:1px solid var(--line);background:#080e19}
-.field{margin:10px 0}
-.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
-.field input,.field select,.field textarea{width:100%;background:#0b1425;color:var(--txt);border:1px solid #344761;border-radius:10px;padding:12px}
-.field textarea{min-height:78px;resize:vertical}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{font-size:16px;margin:0 0 10px;letter-spacing:.2px}
+.muted{color:var(--muted);font-size:13px;line-height:1.5}
+
+/* FORM */
+.field{margin:12px 0}
+.field label{display:block;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:#0c1424;color:var(--txt);border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 14px;font-size:15px}
+.field textarea{min-height:84px;resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted2)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 18px;font-size:15px}
+.btn.primary{background:var(--orange);color:var(--orange-d)}
+.btn.secondary{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+.btn.green{background:var(--green);color:var(--green-d)}
+.btn.danger{background:#3a1f2c;color:var(--red-d);border:1px solid #5a2a3c}
+.btn.block{width:100%}
+.btn.small{min-height:40px;padding:9px 12px;font-size:13px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-.row>*{flex:1;min-width:90px}
-.status{padding:10px 12px;border-radius:10px;background:#1c2b43;color:#c6d8f1;font-size:13px;margin-top:10px;word-break:break-word}
-.status.err{background:#442330;color:#ffd9df}
-.status.ok{background:#15372e;color:#b8f5dc}
-.pill{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;white-space:nowrap}
-.shopee{background:#4a2a18;color:#ffb66f}
-.grab{background:#143b30;color:#75efbc}
-.stop{border:1px solid var(--line);background:#101a2c;border-radius:12px;padding:12px;margin-top:9px;transition:opacity .2s}
-.stophead{display:flex;align-items:center;gap:8px}
-.num{width:28px;height:28px;border-radius:9px;background:#273a57;display:grid;place-items:center;font-weight:900;flex:none}
-.stopname{font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.addr{color:#d5e0f2;font-size:13px;margin:8px 0;overflow-wrap:anywhere}
-.small{font-size:12px;color:var(--muted)}
-.stop .row{margin-top:8px}
-.stop button{padding:9px 10px;font-size:12px;min-width:0}
-.done{opacity:.55}
-.done .stopname{text-decoration:line-through}
-#map{height:420px;border-radius:14px;overflow:hidden;background:#152137;position:relative}
-.maptools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.maptools button{font-size:12px;padding:10px 12px}
-.empty{padding:26px 12px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
-.hidden{display:none!important}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.section-title h2{margin:0}
-.footer{color:#7586a2;text-align:center;font-size:11px;padding:12px}
-.hamburger-panel{background:#101a2c;border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap}
-.hamburger-panel button{background:#22324b;color:white;font-size:13px;padding:9px 12px}
-.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
-.legend span{display:inline-flex;align-items:center;gap:5px}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.fullscreen-map{position:fixed!important;inset:0!important;z-index:2000!important;height:100vh!important;width:100vw!important;border-radius:0!important;margin:0!important}
-.close-fullscreen{position:fixed;top:14px;right:14px;z-index:2100;background:var(--red);color:white;display:none}
-body.fullscreen-mode .close-fullscreen{display:block}
-.progress{height:6px;background:#0b1425;border-radius:3px;overflow:hidden;margin-top:8px}
+.row>.btn{flex:1}
+
+/* UPLOAD */
+.uploadbox{border:1.5px dashed #425a7d;background:#0c1424;border-radius:var(--radius);padding:20px 16px;text-align:center}
+.uploadbox strong{display:block;margin-bottom:6px}
+.uploadbox input{display:block;width:100%;margin:10px 0 4px;color:var(--muted);font-size:13px}
+.thumbs{display:flex;gap:8px;overflow:auto;margin-top:12px;padding-bottom:4px}
+.thumbs img{height:100px;border-radius:10px;border:1px solid var(--line);background:#070c16;object-fit:cover}
+
+/* PROGRESS */
+.progress{height:6px;background:#0c1424;border-radius:3px;overflow:hidden;margin-top:10px}
 .progress > div{height:100%;background:var(--orange);width:0;transition:width .2s}
+
+/* STOP CARD */
+.stop{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-top:10px;display:flex;flex-direction:column;gap:10px;transition:opacity .2s}
+.stop.done{opacity:.55}
+.stop.done .stop-title{text-decoration:line-through;text-decoration-thickness:2px}
+.stop-top{display:flex;align-items:center;gap:12px}
+.num{width:42px;height:42px;flex:none;border-radius:12px;background:var(--orange);color:var(--orange-d);font-size:18px;font-weight:900;display:grid;place-items:center}
+.stop.done .num{background:#3a4a66;color:#c9d6ea}
+.stop-title{font-weight:800;font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{display:inline-block;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.3px;white-space:nowrap}
+.pill.shopee{background:#4a2a18;color:#ffb66f}
+.pill.grab{background:#0f3a2c;color:#7bffc4}
+.addr{color:#dbe5f5;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.meta{font-size:12px;color:var(--muted2);font-weight:700}
+.code{background:#2a3a55;padding:2px 6px;border-radius:4px;color:#fff;font-family:monospace;font-size:12px}
+.warn{color:#ffb66f;font-size:12px;font-weight:700}
+
+.stop-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stop-actions .btn{min-height:44px;font-size:14px}
+.stop-actions .wide{grid-column:1/-1}
+
+/* MAP */
+#map{height:46vh;min-height:300px;border-radius:var(--radius);overflow:hidden;background:#152137;position:relative}
+.map-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.map-tools .btn{min-height:44px;font-size:13px}
+.fullscreen-map{position:fixed!important;inset:0!important;z-index:2000!important;height:100vh!important;width:100vw!important;border-radius:0!important;margin:0!important}
+
+/* BOTTOM NAV */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:800;background:rgba(10,15,28,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:stretch;padding:6px 8px calc(6px + var(--safe-b))}
+.bottomnav button{flex:1;background:transparent;color:var(--muted2);display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;font-size:12px;font-weight:700}
+.bottomnav button.active{color:var(--orange)}
+
+/* FAB & TOAST */
+.fab{position:fixed;right:16px;bottom:calc(80px + var(--safe-b) + 12px);width:58px;height:58px;border-radius:50%;background:var(--orange);color:var(--orange-d);font-size:26px;display:grid;place-items:center;box-shadow:0 10px 24px rgba(255,139,43,.45);z-index:850}
+@media(min-width:900px){.fab{display:none}}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b) + 10px);transform:translateX(-50%) translateY(20px);background:#1b2a44;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;max-width:calc(100% - 32px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:#1f6b4f;background:#0f3a2c;color:#b8f5dc}
+.toast.err{border-color:#5a2a3c;background:#3a1f2c;color:#ffd9df}
+
+/* SHEET */
+.sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1500;opacity:0;pointer-events:none;transition:opacity .2s}
+.sheet-backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:1600;background:var(--panel);border-top-left-radius:20px;border-top-right-radius:20px;border-top:1px solid var(--line);padding:16px 16px calc(16px + var(--safe-b));transform:translateY(100%);transition:transform .25s ease;max-height:90vh;overflow:auto}
+.sheet.show{transform:translateY(0)}
+.sheet-handle{width:44px;height:5px;background:var(--line);border-radius:3px;margin:0 auto 14px}
+
+/* EMPTY */
+.empty{text-align:center;padding:36px 16px;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+.empty .big{font-size:24px;font-weight:bold;margin-bottom:8px}
+.empty strong{display:block;color:var(--txt);margin-bottom:4px;font-size:15px}
+.hidden{display:none!important}
+.sec-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.sec-title h2{margin:0}
+.sec-title .count{font-size:12px;color:var(--muted2);font-weight:700}
 </style>
 </head>
 <body>
+
 <header class="top">
-  <button class="menu" id="menuBtn" aria-label="Buka menu">☰</button>
   <div>
     <div class="brand">BUNGLO<span>NIN</span></div>
     <div class="tag">Penyatu rute ShopeeFood + Grab</div>
   </div>
-  <div style="margin-left:auto;text-align:right">
-    <div id="orderCount" style="font-weight:800">0 titik</div>
-    <div class="tag">rute aktif</div>
+  <div class="right">
+    <span class="chip"><span class="dot"></span><span id="orderCount">0 Titik</span></span>
+    <button class="icon-btn" id="locBtnTop" title="Lokasi saya">LOC</button>
   </div>
 </header>
 
 <main class="shell">
-  <div id="menuPanel" class="hamburger-panel hidden">
-    <button onclick="showTab('route')">📍 Rute & Peta</button>
-    <button onclick="showTab('add')">➕ Tambah</button>
-    <button onclick="showTab('manage')">📋 Daftar</button>
-    <button onclick="exportData()">⬇️ Ekspor JSON</button>
-    <button onclick="exportText()">📄 Ekspor teks</button>
-    <button onclick="document.getElementById('importInput').click()">⬆️ Impor JSON</button>
-    <button onclick="clearAll()">🗑️ Reset semua</button>
-    <input id="importInput" type="file" accept="application/json" class="hidden">
-  </div>
-
-  <nav class="nav">
+  <nav class="tabbar">
     <button class="active" data-tab="route" onclick="showTab('route')">Rute & Peta</button>
-    <button data-tab="add" onclick="showTab('add')">Masukkan Foto / Pesanan</button>
-    <button data-tab="manage" onclick="showTab('manage')">Daftar Pesanan</button>
+    <button data-tab="add" onclick="showTab('add')">Tambah Titik</button>
+    <button data-tab="manage" onclick="showTab('manage')">Daftar Titik</button>
   </nav>
 
   <div class="layout">
-    <section id="leftCol">
+    <section>
+      <!-- ADD TAB -->
       <div class="card tabpage" id="tab-add">
-        <h2>1. Masukkan screenshot pesanan</h2>
-        <p class="muted">Pilih satu atau beberapa screenshot dari galeri HP. Gambar akan tampil dulu sebelum OCR dijalankan.</p>
+        <h2>Scan Screenshot</h2>
+        <p class="muted">Pilih screenshot aplikasi ojol. Sistem akan memfilter peta dan hanya mengambil alamat serta kode pesanan.</p>
         <div class="uploadbox">
           <strong>Pilih foto dari galeri</strong>
           <input id="photoInput" type="file" accept="image/*" multiple>
-          <div class="muted">JPG, PNG, atau screenshot. Pilih bagian detail alamat pesanan — bukan cuma peta.</div>
         </div>
         <div id="thumbs" class="thumbs"></div>
         <div class="row" style="margin-top:12px">
-          <button id="ocrBtn" disabled>Scan teks di foto</button>
-          <button class="secondary" id="clearPhotosBtn">Hapus foto</button>
+          <button class="btn primary" id="ocrBtn" disabled>Scan Teks</button>
+          <button class="btn secondary" id="clearPhotosBtn">Hapus</button>
         </div>
-        <div id="ocrStatus" class="status">Belum ada foto dipilih. Kalau OCR gagal, alamat tetap bisa dimasukkan manual di bawah.</div>
         <div class="progress hidden" id="ocrProgress"><div></div></div>
         <div class="field">
-          <label>Hasil teks OCR (boleh diedit / salin alamat yang benar)</label>
-          <textarea id="ocrText" placeholder="Hasil bacaan teks foto akan muncul di sini..."></textarea>
+          <label>Hasil Scan (Bisa diedit manual jika ada yang salah)</label>
+          <textarea id="ocrText" placeholder="Hasil scan akan muncul di sini..." style="min-height:120px"></textarea>
         </div>
         <div class="row">
-          <button class="secondary" id="useTextBtn">Pakai sebagai alamat</button>
-          <button class="secondary" id="copyOcrBtn">Salin teks</button>
-          <button class="secondary" id="manualFocusBtn">Input manual</button>
+          <button class="btn primary" id="parseOcrBtn">Ekstrak ke Titik Rute</button>
         </div>
       </div>
 
-      <div class="card">
-        <h2>2. Tambah atau koreksi titik</h2>
-        <p class="muted">Masukkan alamat tujuan yang terlihat pada detail order. Setiap order bisa punya titik jemput dan titik antar.</p>
+      <!-- ADD MANUAL -->
+      <div class="card tabpage" id="tab-add-manual">
+        <h2>Tambah Manual</h2>
         <div class="field">
           <label>Platform</label>
           <select id="platform">
-            <option value="ShopeeFood">ShopeeFood</option>
-            <option value="Grab">Grab</option>
+            <option value="ShopeeFood">ShopeeFood / SPX</option>
+            <option value="Grab">GrabExpress</option>
           </select>
         </div>
         <div class="field">
-          <label>Nama / nomor order (opsional)</label>
-          <input id="orderName" placeholder="Mis. SF-01 / Grab order 2">
-        </div>
-        <div class="field">
-          <label>Alamat jemput restoran (opsional)</label>
-          <textarea id="pickup" placeholder="Alamat pickup restoran"></textarea>
-        </div>
-        <div class="field">
-          <label>Alamat antar pelanggan (wajib)</label>
-          <textarea id="dropoff" placeholder="Alamat lengkap dari detail pesanan"></textarea>
+          <label>Alamat Tujuan</label>
+          <textarea id="dropoff" placeholder="Ketik alamat lengkap..."></textarea>
         </div>
         <div class="row">
-          <button id="addOrderBtn">Tambah ke rute</button>
-          <button class="secondary" id="clearFormBtn">Kosongkan</button>
+          <button class="btn primary" id="addOrderBtn">Tambah ke Rute</button>
+          <button class="btn secondary" id="clearFormBtn">Kosongkan</button>
         </div>
-        <div id="addStatus" class="status">Alamat yang belum lengkap bisa dikoreksi kapan saja dari daftar pesanan.</div>
       </div>
     </section>
 
     <section>
+      <!-- ROUTE TAB -->
       <div class="card tabpage" id="tab-route">
-        <div class="section-title">
-          <h2>Peta rute</h2>
-          <span class="small" id="mapLabel">Titik akan muncul setelah alamat ditambahkan</span>
+        <div class="sec-title">
+          <h2>Peta Rute</h2>
+          <span class="count" id="mapLabel">0 Titik</span>
         </div>
-        <div id="map" style="margin-top:12px"></div>
-        <div class="maptools">
-          <button class="secondary" id="locBtn">📍 Lokasi saya</button>
-          <button class="secondary" id="recalcBtn">🔄 Susun ulang</button>
-          <button class="secondary" id="allMapsBtn">🗺️ Buka rute di Maps</button>
-          <button class="secondary" id="fullscreenBtn">⛶ Perbesar</button>
+        <div id="map"></div>
+        <div class="map-tools">
+          <button class="btn secondary" id="locBtn">Lokasi Saya</button>
+          <button class="btn secondary" id="recalcBtn">Susun Ulang</button>
+          <button class="btn primary" id="allMapsBtn">Buka Google Maps</button>
+          <button class="btn secondary" id="fullscreenBtn">Perbesar</button>
         </div>
-        <div class="legend">
-          <span><i class="dot" style="background:#ff8b2b"></i> ShopeeFood</span>
-          <span><i class="dot" style="background:#24c78a"></i> Grab</span>
-          <span><i class="dot" style="background:#218cff"></i> Lokasi saya</span>
-        </div>
-        <div class="status" id="routeStatus">Peta menggunakan geocoding online. Pastikan internet aktif. Urutan terdekat dihitung dari koordinat garis lurus; Google Maps dipakai untuk navigasi jalan.</div>
       </div>
 
+      <!-- MANAGE TAB -->
       <div class="card tabpage" id="tab-manage">
-        <div class="section-title">
-          <h2>Urutan kunjungan</h2>
-          <span class="small" id="listCount">0 titik</span>
+        <div class="sec-title">
+          <h2>Daftar Kunjungan</h2>
+          <span class="count" id="listCount">0 Titik</span>
         </div>
-        <p class="muted">Tandai selesai agar titik itu tidak ikut diatur ulang. Tambahan order akan disisipkan ke rute yang belum selesai.</p>
         <div class="row" style="margin-bottom:10px">
-          <button class="secondary" id="markAllBtn">✅ Tandai semua selesai</button>
-          <button class="danger" id="clearDoneBtn">🗑️ Hapus yang selesai</button>
+          <button class="btn secondary small" id="markAllBtn">Tandai Semua Selesai</button>
+          <button class="btn danger small" id="clearDoneBtn">Hapus Selesai</button>
         </div>
-        <div id="stopList"><div class="empty">Belum ada alamat. Tambahkan pesanan di tab “Masukkan Foto / Pesanan”.</div></div>
-      </div>
-
-      <div class="card">
-        <h2>Catatan penting</h2>
-        <p class="muted">BUNGLONIN membantu menyusun titik dan membuka navigasi. OCR bisa salah membaca alamat, jadi periksa hasilnya. Jarak antar titik yang ditampilkan adalah perkiraan garis lurus, bukan jarak jalan aktual.</p>
+        <div id="stopList"></div>
       </div>
     </section>
   </div>
-  <div class="footer">BUNGLONIN · Simpan file ini lalu buka dengan browser. Fitur OCR dan peta memerlukan internet.</div>
 </main>
 
-<button class="close-fullscreen" id="closeFullscreenBtn">✕ Tutup peta</button>
+<nav class="bottomnav">
+  <button class="active" data-tab="route" onclick="showTab('route')">Peta</button>
+  <button data-tab="add" onclick="showTab('add')">Tambah</button>
+  <button data-tab="manage" onclick="showTab('manage')">Daftar</button>
+</nav>
 
+<button class="fab" id="fabAdd" aria-label="Tambah titik">+</button>
+<div class="toast" id="toast"></div>
+
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div id="sheetBody"></div>
+</div>
+
+<input id="importInput" type="file" accept="application/json" class="hidden">
+<button id="closeFullscreenBtn" class="fab hidden" style="background:var(--red);color:white;bottom:auto;top:14px;right:14px;width:48px;height:48px;font-size:16px;font-weight:bold">X</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-/* ============ UTIL ============ */
 const $ = id => document.getElementById(id);
-const LS_KEY = 'bunglonin_state_v2';
+const LS_KEY = 'bunglonin_state_v6';
 
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg, type=''){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=> t.className = 'toast ' + type, 2600);
+}
 
-/* ============ STATE ============ */
 let photos = [];
 let orders = [];
 let nextId = 1;
@@ -231,15 +301,8 @@ let routeLine = null;
 let geoCache = {};
 let activeTab = 'route';
 
-/* ============ PERSISTENCE ============ */
 function saveState(){
-  try{
-    localStorage.setItem(LS_KEY, JSON.stringify({
-      orders,
-      nextId,
-      currentLoc
-    }));
-  }catch(e){ console.warn('Gagal simpan state', e); }
+  try{ localStorage.setItem(LS_KEY, JSON.stringify({orders, nextId, currentLoc})); }catch(e){}
 }
 function loadState(){
   try{
@@ -249,44 +312,35 @@ function loadState(){
     if(Array.isArray(d.orders)) orders = d.orders;
     if(typeof d.nextId === 'number') nextId = d.nextId;
     if(d.currentLoc) currentLoc = d.currentLoc;
-  }catch(e){ console.warn('Gagal muat state', e); }
+  }catch(e){}
 }
 
-/* ============ TAB ============ */
 function showTab(tab){
   activeTab = tab;
   document.querySelectorAll('.tabpage').forEach(x=>x.classList.add('hidden'));
-  const el = $('tab-'+tab);
-  if(el) el.classList.remove('hidden');
-  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
-  $('menuPanel').classList.add('hidden');
-  if(map) setTimeout(()=>map.invalidateSize(), 120);
-}
-$('menuBtn').onclick = ()=> $('menuPanel').classList.toggle('hidden');
-
-/* ============ STATUS ============ */
-function setStatus(id, msg, type=''){
-  const el = $(id);
-  if(!el) return;
-  el.textContent = msg;
-  el.className = 'status ' + type;
+  if(tab === 'add'){
+    $('tab-add').classList.remove('hidden');
+    $('tab-add-manual').classList.remove('hidden');
+  }else{
+    const el = $('tab-'+tab);
+    if(el) el.classList.remove('hidden');
+  }
+  document.querySelectorAll('.tabbar button, .bottomnav button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  if(map) setTimeout(()=>map.invalidateSize(), 150);
 }
 
-/* ============ FOTO & OCR ============ */
+// ================= OCR & PARSING =================
 $('photoInput').addEventListener('change', e=>{
   photos = Array.from(e.target.files||[]);
   $('thumbs').innerHTML = '';
   photos.forEach(f=>{
     const im = document.createElement('img');
-    im.alt = f.name;
     im.src = URL.createObjectURL(f);
     $('thumbs').appendChild(im);
   });
   $('ocrBtn').disabled = !photos.length;
-  setStatus('ocrStatus',
-    photos.length ? `${photos.length} foto siap dipindai. Tekan “Scan teks di foto”.` : 'Belum ada foto dipilih.',
-    photos.length ? 'ok' : ''
-  );
 });
 
 $('clearPhotosBtn').onclick = ()=>{
@@ -295,7 +349,6 @@ $('clearPhotosBtn').onclick = ()=>{
   $('thumbs').innerHTML = '';
   $('ocrBtn').disabled = true;
   $('ocrProgress').classList.add('hidden');
-  setStatus('ocrStatus','Foto dibersihkan.');
 };
 
 function loadOCR(){
@@ -304,7 +357,7 @@ function loadOCR(){
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
     s.onload = resolve;
-    s.onerror = ()=> reject(new Error('CDN OCR tidak dapat diakses'));
+    s.onerror = ()=> reject(new Error('CDN OCR gagal'));
     document.head.appendChild(s);
   });
 }
@@ -316,432 +369,617 @@ $('ocrBtn').onclick = async ()=>{
   const prog = $('ocrProgress');
   const bar = prog.firstElementChild;
   prog.classList.remove('hidden');
-  bar.style.width = '0%';
   try{
     await loadOCR();
     const all = [];
     for(let i=0;i<photos.length;i++){
-      setStatus('ocrStatus', `Membaca foto ${i+1}/${photos.length}…`);
       const result = await Tesseract.recognize(photos[i], 'ind+eng', {
         logger: m=>{
-          if(m.status === 'recognizing text'){
-            const p = Math.round((m.progress||0)*100);
-            bar.style.width = p + '%';
-            setStatus('ocrStatus', `Membaca foto ${i+1}/${photos.length}: ${p}%`);
-          }
+          if(m.status === 'recognizing text') bar.style.width = Math.round((m.progress||0)*100) + '%';
         }
       });
-      all.push(`--- FOTO ${i+1} ---\n${result.data.text||''}`);
+      all.push(result.data.text || '');
     }
     $('ocrText').value = all.join('\n\n');
-    bar.style.width = '100%';
-    setStatus('ocrStatus','Selesai. Periksa teks dan salin alamat ANTAR yang benar ke kolom alamat pelanggan.','ok');
+    toast('Scan selesai', 'ok');
   }catch(err){
-    setStatus('ocrStatus','OCR gagal dimuat/dijalankan. Periksa internet lalu coba lagi, atau masukkan alamat secara manual. Detail: '+(err.message||err),'err');
+    toast('Scan gagal: ' + err.message, 'err');
   }finally{
     btn.disabled = false;
     setTimeout(()=>prog.classList.add('hidden'), 1500);
   }
 };
 
-function cleanOcrLines(text){
-  const drop = /(detail pesanan|pesanan selesai|estimasi|total pembayaran|metode pembayaran|hubungi|chat driver|lihat peta|pesanan diterima|driver menuju|tiba di lokasi|biaya antar|ongkos|promo|voucher|kode pesanan|order id|status pesanan)/i;
-  return text.split(/\n/)
-    .map(s=>s.replace(/[|_~`^]+/g,'').trim())
-    .filter(s=>s.length>10 && !drop.test(s) && !/^foto \d+/i.test(s));
+// ================= IMPROVED PARSER =================
+function isAddressLike(str) {
+  if (!str || str.length < 12) return false;
+  // Skip jelas-jelas bukan alamat
+  if (/(petunjuk arah|detail pesanan|hubungi|masalah|pengirim|pesanan selesai|biaya|total|estimasi|driver|kode pesanan|order id|ambil di|antar ke|jarak|menit|rp\.|idr)/i.test(str)) return false;
+  if (/^[0-9\s\.\-]+$/.test(str)) return false;
+  
+  const keywords = /(jalan|jl\.|jl |blok|no\.|no |nomor|kav|kec|kab|kota|desa|kelurahan|kel |perumahan|komplek|kompleks|gedung|ruko|rt\/rw|rt |rw |patokan|depan|belakang|samping|seberang|gg\.|gang |perum |graha|residence|apartment|apartemen)/i;
+  return keywords.test(str) || (str.length > 25 && /\d/.test(str));
 }
 
-$('useTextBtn').onclick = ()=>{
-  const t = $('ocrText').value.trim();
-  if(!t){
-    setStatus('addStatus','Belum ada teks OCR untuk dipakai.','err');
+function extractCode(str) {
+  // Lebih banyak pola kode pengambilan
+  const patterns = [
+    /#[A-Z0-9]{4,}/i,
+    /\bSPX[A-Z0-9]{6,}\b/i,
+    /\b[A-Z]{2,3}[0-9]{4,}\b/,
+    /\b[0-9]{2,}[A-Z]{2,}[0-9A-Z]{2,}\b/
+  ];
+  for (const p of patterns) {
+    const m = str.match(p);
+    if (m) return m[0];
+  }
+  return '';
+}
+
+$('parseOcrBtn').onclick = ()=>{
+  let rawText = $('ocrText').value;
+  if(!rawText.trim()){ toast('Teks kosong', 'err'); return; }
+
+  let lines = rawText.split('\n').map(s => s.trim()).filter(s => s.length > 1);
+  
+  // ===== MERGE baris yang nyambung (biar 1 alamat nggak jadi 2) =====
+  let merged = [];
+  for (let line of lines) {
+    if (merged.length === 0) {
+      merged.push(line);
+      continue;
+    }
+    const prev = merged[merged.length - 1];
+    const prevIsAddr = isAddressLike(prev);
+    const currIsAddr = isAddressLike(line);
+    
+    // Gabung kalau keduanya alamat, atau lanjutan yang pendek
+    if ((prevIsAddr && currIsAddr) || 
+        (prevIsAddr && line.length > 4 && !extractCode(line) && !/^[0-9]+\./.test(line))) {
+      merged[merged.length - 1] = prev + ' ' + line;
+    } else {
+      merged.push(line);
+    }
+  }
+
+  let extracted = [];
+  let currentPlatform = /grab/i.test(rawText) ? "Grab" : "ShopeeFood";
+  let currentCode = "";
+
+  for (let i = 0; i < merged.length; i++) {
+    let line = merged[i];
+
+    // Skip sampah
+    if (/(petunjuk arah|detail pesanan|hubungi|masalah|pengirim|pesanan selesai|biaya|total|estimasi|driver)/i.test(line)) continue;
+
+    // Ambil kode
+    const codeInLine = extractCode(line);
+    if (codeInLine) {
+      currentCode = codeInLine;
+      // Kalau baris cuma kode doang, lanjut
+      if (line.replace(codeInLine, '').trim().length < 8) continue;
+    }
+
+    if (isAddressLike(line)) {
+      let cleanAddr = line
+        .replace(/^(?:Titik\s*|Stop\s*|Tujuan\s*)?[1-9][0-9]?[\s\.\-\)]+/i, '')
+        .replace(extractCode(line), '')
+        .trim();
+
+      if (cleanAddr.length > 10) {
+        extracted.push({
+          platform: currentPlatform,
+          code: currentCode || extractCode(line) || '',
+          address: cleanAddr
+        });
+        currentCode = ""; // reset setelah dipakai
+      }
+    }
+  }
+
+  // Fallback kalau terlalu ketat
+  if (extracted.length === 0) {
+    merged.filter(l => l.length > 22).forEach(l => {
+      const code = extractCode(l);
+      const addr = l.replace(code, '').trim();
+      if (addr.length > 12) {
+        extracted.push({ platform: currentPlatform, code, address: addr });
+      }
+    });
+  }
+
+  // Hapus duplikat alamat
+  const unique = [];
+  const seen = new Set();
+  extracted.forEach(item => {
+    const key = item.address.toLowerCase().replace(/\s+/g, ' ').slice(0, 60);
+    if (!seen.has(key) && item.address.length > 10) {
+      seen.add(key);
+      unique.push(item);
+    }
+  });
+
+  if (unique.length === 0) {
+    toast('Tidak ada alamat terdeteksi. Coba edit manual di kotak teks.', 'err');
     return;
   }
-  const lines = cleanOcrLines(t);
-  $('dropoff').value = lines.slice(-6).join('\n');
-  showTab('add');
-  setStatus('addStatus','Teks awal dimasukkan. Periksa dan rapikan agar hanya alamat antar yang benar.','ok');
-};
 
-$('copyOcrBtn').onclick = async ()=>{
-  const t = $('ocrText').value;
-  if(!t) return;
-  try{
-    await navigator.clipboard.writeText(t);
-    setStatus('ocrStatus','Teks OCR disalin ke clipboard.','ok');
-  }catch(e){
-    setStatus('ocrStatus','Gagal menyalin. Blok teks lalu salin manual.','err');
+  let addedCount = 0;
+  unique.forEach(item => {
+    orders.push({
+      id: nextId++,
+      platform: item.platform,
+      name: `Titik ${orders.length + 1}`,
+      code: item.code,
+      dropoff: item.address,
+      done: false,
+      coords: null
+    });
+    addedCount++;
+  });
+
+  if (addedCount > 0) {
+    render();
+    saveState();
+    showTab('manage');
+    toast(`${addedCount} titik berhasil diekstrak`, 'ok');
+    geocodeOrders().then(() => {
+      optimize();
+      render();
+      drawMap();
+      saveState();
+    });
   }
 };
 
-$('manualFocusBtn').onclick = ()=>{
-  $('dropoff').focus();
-  showTab('add');
-};
-
-/* ============ TAMBAH ORDER ============ */
+// ================= MANUAL =================
 $('addOrderBtn').onclick = ()=>{
-  const platform = $('platform').value;
-  const name = $('orderName').value.trim();
-  const pickup = $('pickup').value.trim();
   const dropoff = $('dropoff').value.trim();
-  if(!dropoff){
-    setStatus('addStatus','Alamat antar wajib diisi dulu.','err');
-    $('dropoff').focus();
-    return;
-  }
-  const order = {
+  if(!dropoff){ toast('Alamat wajib diisi', 'err'); return; }
+  orders.push({
     id: nextId++,
-    platform,
-    name: name || `${platform} #${nextId-1}`,
-    pickup,
+    platform: $('platform').value,
+    name: `Titik ${orders.length + 1}`,
+    code: "",
     dropoff,
     done: false,
-    coords: null,
-    pickCoords: null
-  };
-  orders.push(order);
-  ['orderName','pickup','dropoff'].forEach(id=>$(id).value='');
-  setStatus('addStatus','Pesanan ditambahkan. Sedang mencari koordinat alamat…','ok');
+    coords: null
+  });
+  $('dropoff').value = '';
   render();
   saveState();
-  geocodeOrders().then(()=>{
+  toast('Titik ditambahkan', 'ok');
+  geocodeOrders().then(() => {
     optimize();
     render();
     drawMap();
     saveState();
-    setStatus('addStatus','Pesanan siap. Koordinat diperbarui.','ok');
   });
 };
+$('clearFormBtn').onclick = () => $('dropoff').value = '';
 
-$('clearFormBtn').onclick = ()=>['orderName','pickup','dropoff'].forEach(id=>$(id).value='');
+// ================= GEO & MAP =================
+async function geocode(address) {
+  if (!address) return null;
+  const key = address.toLowerCase().trim();
+  if (geoCache[key] !== undefined) return geoCache[key];
 
-/* ============ GEOCODING ============ */
-async function geocode(address){
-  if(!address) return null;
-  if(geoCache[address]) return geoCache[address];
-  try{
-    const u = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(address+', Indonesia');
-    const r = await fetch(u, {headers:{'Accept-Language':'id'}});
-    if(!r.ok) return null;
+  try {
+    const q = encodeURIComponent(address + ', Indonesia');
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=id&q=${q}`;
+    const r = await fetch(url, {
+      headers: {
+        'Accept-Language': 'id',
+        'User-Agent': 'Bunglonin-OjolHelper/1.0'
+      }
+    });
+    if (!r.ok) {
+      geoCache[key] = null;
+      return null;
+    }
     const d = await r.json();
-    const c = d[0] ? {lat:+d[0].lat, lon:+d[0].lon, label:d[0].display_name} : null;
-    geoCache[address] = c;
+    const c = d[0] ? { lat: +d[0].lat, lon: +d[0].lon } : null;
+    geoCache[key] = c;
+    // Hormati rate limit Nominatim
+    await new Promise(res => setTimeout(res, 1100));
     return c;
-  }catch(e){ return null; }
-}
-
-async function geocodeOrders(){
-  for(const o of orders){
-    if(!o.coords) o.coords = await geocode(o.dropoff);
-    if(o.pickup && !o.pickCoords) o.pickCoords = await geocode(o.pickup);
+  } catch (e) {
+    console.warn('Geocode error:', e);
+    geoCache[key] = null;
+    return null;
   }
 }
 
-/* ============ OPTIMIZE ============ */
-function optimize(){
-  const pending = orders.filter(o=>!o.done);
-  const done = orders.filter(o=>o.done);
-  if(pending.length < 2) return;
-  const start = currentLoc || {lat:-6.2, lon:106.816666};
+async function geocodeOrders() {
+  for (const o of orders) {
+    if (!o.coords) {
+      o.coords = await geocode(o.dropoff);
+    }
+  }
+}
+
+function dist(a, b) {
+  if (!a || !b) return Infinity;
+  const rad = x => x * Math.PI / 180;
+  const dl = rad(b.lat - a.lat), dn = rad(b.lon - a.lon);
+  const v = Math.sin(dl/2)**2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dn/2)**2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(v), Math.sqrt(1 - v));
+}
+
+function optimize() {
+  const pending = orders.filter(o => !o.done);
+  const done = orders.filter(o => o.done);
+  
+  if (pending.length === 0) {
+    orders = done;
+    orders.forEach((o, i) => o.name = `Titik ${i + 1}`);
+    return;
+  }
+
+  const start = currentLoc || { lat: -6.2, lon: 106.816666 };
   const sorted = [];
   const remaining = [...pending];
   let cur = start;
-  while(remaining.length){
-    let best = 0, bestD = Infinity;
-    remaining.forEach((o,i)=>{
-      if(!o.coords) return;
+
+  while (remaining.length > 0) {
+    let bestIdx = -1;
+    let bestD = Infinity;
+
+    remaining.forEach((o, i) => {
+      if (!o.coords) return;
       const d = dist(cur, o.coords);
-      if(d < bestD){ bestD = d; best = i; }
+      if (d < bestD) {
+        bestD = d;
+        bestIdx = i;
+      }
     });
-    if(!Number.isFinite(bestD)){
+
+    if (bestIdx === -1) {
+      // Semua sisa belum punya koordinat → taruh di belakang
       sorted.push(...remaining);
       break;
     }
-    const n = remaining.splice(best,1)[0];
-    sorted.push(n);
-    cur = n.coords;
+
+    const next = remaining.splice(bestIdx, 1)[0];
+    sorted.push(next);
+    cur = next.coords;
   }
+
   orders = [...done, ...sorted];
+  orders.forEach((o, i) => o.name = `Titik ${i + 1}`);
 }
 
-function dist(a,b){
-  const rad = x=>x*Math.PI/180;
-  const dl = rad(b.lat-a.lat), dn = rad(b.lon-a.lon);
-  const v = Math.sin(dl/2)**2 + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dn/2)**2;
-  return 6371*2*Math.atan2(Math.sqrt(v), Math.sqrt(1-v));
-}
-
-$('recalcBtn').onclick = async ()=>{
-  setStatus('routeStatus','Mencari koordinat alamat dan menyusun ulang titik…');
+$('recalcBtn').onclick = async () => {
+  toast('Menyusun ulang rute...');
+  // Clear cache yang gagal biar dicoba lagi
+  orders.forEach(o => {
+    if (!o.coords) delete geoCache[o.dropoff.toLowerCase().trim()];
+  });
   await geocodeOrders();
   optimize();
   render();
   drawMap();
   saveState();
-  setStatus('routeStatus','Rute titik yang belum selesai sudah disusun ulang berdasarkan jarak garis lurus. Navigasi jalan tetap dibuka lewat Google Maps.','ok');
+  toast('Rute diperbarui', 'ok');
 };
 
-/* ============ LOKASI ============ */
-$('locBtn').onclick = ()=>{
-  if(!navigator.geolocation){
-    setStatus('routeStatus','Browser tidak mendukung lokasi.','err');
+function requestLoc() {
+  if (!navigator.geolocation) {
+    toast('Browser tidak mendukung lokasi', 'err');
     return;
   }
-  setStatus('routeStatus','Meminta izin lokasi…');
+  toast('Meminta lokasi...');
   navigator.geolocation.getCurrentPosition(
-    p=>{
-      currentLoc = {lat:p.coords.latitude, lon:p.coords.longitude};
-      setStatus('routeStatus','Lokasi saat ini berhasil didapat. Susun ulang rute untuk memakai lokasi sebagai titik awal.','ok');
+    p => {
+      currentLoc = { lat: p.coords.latitude, lon: p.coords.longitude };
+      optimize();
+      render();
       drawMap();
       saveState();
+      toast('Lokasi didapat + rute dioptimasi', 'ok');
     },
-    e=>setStatus('routeStatus','Lokasi gagal diakses. Izinkan lokasi di browser atau tambahkan titik secara manual.','err'),
-    {enableHighAccuracy:true, timeout:12000}
+    () => toast('Gagal mendapat lokasi', 'err'),
+    { enableHighAccuracy: true, timeout: 12000 }
   );
-};
-
-/* ============ NAVIGASI ============ */
-function googleUrl(o){
-  return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(o.dropoff)+'&travelmode=driving';
 }
+$('locBtn').onclick = requestLoc;
+$('locBtnTop').onclick = requestLoc;
 
-$('allMapsBtn').onclick = ()=>{
-  const pending = orders.filter(o=>!o.done);
-  if(!pending.length){
-    setStatus('routeStatus','Belum ada titik aktif untuk dibuka di Maps.','err');
+$('allMapsBtn').onclick = () => {
+  const pending = orders.filter(o => !o.done);
+  if (!pending.length) {
+    toast('Belum ada titik aktif', 'err');
     return;
   }
   let url = 'https://www.google.com/maps/dir/?api=1';
-  url += '&origin=' + encodeURIComponent(currentLoc ? `${currentLoc.lat},${currentLoc.lon}` : '');
-  url += '&destination=' + encodeURIComponent(pending[pending.length-1].dropoff);
-  if(pending.length > 1){
-    url += '&waypoints=' + encodeURIComponent(pending.slice(0,-1).map(o=>o.dropoff).join('|'));
+  if (currentLoc) url += '&origin=' + encodeURIComponent(`${currentLoc.lat},${currentLoc.lon}`);
+  url += '&destination=' + encodeURIComponent(pending[pending.length - 1].dropoff);
+  if (pending.length > 1) {
+    url += '&waypoints=' + encodeURIComponent(pending.slice(0, -1).map(o => o.dropoff).join('|'));
   }
   url += '&travelmode=driving';
-  window.open(url,'_blank','noopener');
+  window.open(url, '_blank', 'noopener');
 };
 
-/* ============ RENDER DAFTAR ============ */
-function render(){
-  $('orderCount').textContent = orders.length + ' order';
-  $('listCount').textContent = orders.length + ' titik antar';
+// ================= RENDER =================
+function render() {
+  $('orderCount').textContent = orders.length + ' Titik';
+  $('listCount').textContent = orders.length + ' Titik';
   const el = $('stopList');
-  if(!orders.length){
-    el.innerHTML = '<div class="empty">Belum ada alamat. Tambahkan pesanan di tab “Masukkan Foto / Pesanan”.</div>';
+  
+  if (!orders.length) {
+    el.innerHTML = `<div class="empty"><div class="big">Kosong</div><strong>Belum ada titik</strong><div>Tap Tambah untuk mulai.</div></div>`;
     return;
   }
+
   el.innerHTML = '';
-  orders.forEach((o,i)=>{
+  orders.forEach((o, i) => {
     const div = document.createElement('div');
-    div.className = 'stop' + (o.done?' done':'');
-    let distTxt = 'Koordinat belum tersedia';
-    if(o.coords && i>0 && orders[i-1].coords){
-      distTxt = `Perkiraan dari titik sebelumnya: ${dist(orders[i-1].coords,o.coords).toFixed(1)} km garis lurus`;
-    }else if(o.coords){
-      distTxt = 'Titik awal rute';
+    div.className = 'stop' + (o.done ? ' done' : '');
+    
+    let distTxt = '';
+    if (o.coords && i > 0 && orders[i-1].coords) {
+      distTxt = `± ${dist(orders[i-1].coords, o.coords).toFixed(1)} km`;
     }
+    const codeHtml = o.code ? `<span class="code">${escapeHtml(o.code)}</span> ` : '';
+    const warnHtml = !o.coords ? `<div class="warn">⚠️ Lokasi belum ditemukan di peta</div>` : '';
+
     div.innerHTML = `
-      <div class="stophead">
-        <div class="num">${i+1}</div>
-        <div class="stopname"></div>
-        <span class="pill ${o.platform==='Grab'?'grab':'shopee'}">${escapeHtml(o.platform)}</span>
+      <div class="stop-top">
+        <div class="num">${i + 1}</div>
+        <div class="stop-title">${escapeHtml(o.name)}</div>
+        <span class="pill ${o.platform === 'Grab' ? 'grab' : 'shopee'}">${escapeHtml(o.platform)}</span>
       </div>
-      <div class="addr"></div>
-      <div class="small"></div>
-      <div class="row">
-        <button class="secondary navbtn">Navigasi</button>
-        <button class="secondary copybtn">Salin</button>
-        <button class="secondary editbtn">Edit</button>
-        <button class="${o.done?'secondary':'green'} donebtn">${o.done?'Batalkan':'Selesai'}</button>
-        <button class="danger delbtn">Hapus</button>
+      <div class="addr">${codeHtml}${escapeHtml(o.dropoff)}</div>
+      ${warnHtml}
+      ${distTxt ? `<div class="meta">${distTxt}</div>` : ''}
+      <div class="stop-actions">
+        <button class="btn primary navbtn">Navigasi</button>
+        <button class="btn ${o.done ? 'secondary' : 'green'} donebtn">${o.done ? 'Batal' : 'Selesai'}</button>
+        ${!o.coords ? `<button class="btn secondary retrybtn wide">Coba Ulang Lokasi</button>` : ''}
+        <button class="btn secondary copybtn wide">Salin Alamat</button>
       </div>`;
-    div.querySelector('.stopname').textContent = o.name;
-    div.querySelector('.addr').textContent = o.dropoff;
-    div.querySelector('.small').textContent = distTxt;
-    div.querySelector('.navbtn').onclick = ()=>window.open(googleUrl(o),'_blank','noopener');
-    div.querySelector('.copybtn').onclick = async ()=>{
-      try{
-        await navigator.clipboard.writeText(o.dropoff);
-        setStatus('routeStatus','Alamat disalin.','ok');
-      }catch(e){
-        setStatus('routeStatus','Gagal menyalin alamat.','err');
-      }
+
+    div.querySelector('.navbtn').onclick = () => {
+      window.open('https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(o.dropoff), '_blank');
     };
-    div.querySelector('.donebtn').onclick = ()=>{
+    
+    div.querySelector('.donebtn').onclick = () => {
       o.done = !o.done;
-      render(); drawMap(); saveState();
+      optimize();          // <-- penting: re-sort sisa order
+      render();
+      drawMap();
+      saveState();
     };
-    div.querySelector('.delbtn').onclick = ()=>{
-      orders = orders.filter(x=>x.id!==o.id);
-      render(); drawMap(); saveState();
+    
+    const retryBtn = div.querySelector('.retrybtn');
+    if (retryBtn) {
+      retryBtn.onclick = async () => {
+        toast('Mencari lokasi...');
+        delete geoCache[o.dropoff.toLowerCase().trim()];
+        o.coords = await geocode(o.dropoff);
+        if (o.coords) {
+          optimize();
+          toast('Lokasi ketemu!', 'ok');
+        } else {
+          toast('Masih gagal. Coba perjelas alamatnya.', 'err');
+        }
+        render();
+        drawMap();
+        saveState();
+      };
+    }
+    
+    div.querySelector('.copybtn').onclick = async () => {
+      try {
+        const text = (o.code ? o.code + ' - ' : '') + o.dropoff;
+        await navigator.clipboard.writeText(text);
+        toast('Disalin', 'ok');
+      } catch (e) {}
     };
-    div.querySelector('.editbtn').onclick = ()=>{
-      $('platform').value = o.platform;
-      $('orderName').value = o.name;
-      $('pickup').value = o.pickup;
-      $('dropoff').value = o.dropoff;
-      orders = orders.filter(x=>x.id!==o.id);
-      render(); drawMap(); saveState();
-      showTab('add');
-      setStatus('addStatus','Edit alamat, lalu tekan Tambah ke rute.','ok');
-    };
+    
+    div.addEventListener('click', e => {
+      if (!e.target.closest('button')) openEditSheet(o);
+    });
+    
     el.appendChild(div);
   });
 }
 
-$('markAllBtn').onclick = ()=>{
-  orders.forEach(o=>o.done=true);
-  render(); drawMap(); saveState();
-};
-$('clearDoneBtn').onclick = ()=>{
-  if(!orders.some(o=>o.done)) return;
-  if(!confirm('Hapus semua order yang sudah selesai?')) return;
-  orders = orders.filter(o=>!o.done);
-  render(); drawMap(); saveState();
-};
+// ================= SHEET EDIT =================
+function openSheet(html) {
+  $('sheetBody').innerHTML = html;
+  $('sheetBackdrop').classList.add('show');
+  $('sheet').classList.add('show');
+}
+function closeSheet() {
+  $('sheetBackdrop').classList.remove('show');
+  $('sheet').classList.remove('show');
+}
+$('sheetBackdrop').onclick = closeSheet;
 
-/* ============ PETA ============ */
-function initMap(){
-  if(!window.L){
-    $('map').innerHTML = '<div class="empty">Pustaka peta tidak termuat. Coba buka file saat internet aktif.</div>';
-    return;
-  }
-  map = L.map('map', {zoomControl:true}).setView([-6.2,106.816666], 11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19,
-    attribution:'© OpenStreetMap'
+function openEditSheet(o) {
+  openSheet(`
+    <h2 style="margin:0 0 12px">Edit Titik</h2>
+    <div class="field"><label>Platform</label>
+      <select id="e_platform">
+        <option value="ShopeeFood" ${o.platform==='ShopeeFood'?'selected':''}>ShopeeFood / SPX</option>
+        <option value="Grab" ${o.platform==='Grab'?'selected':''}>GrabExpress</option>
+      </select>
+    </div>
+    <div class="field"><label>Kode Pengambilan</label>
+      <input id="e_code" value="${escapeHtml(o.code||'')}" placeholder="#72F9 / SPX...">
+    </div>
+    <div class="field"><label>Alamat</label>
+      <textarea id="e_dropoff" style="min-height:100px">${escapeHtml(o.dropoff)}</textarea>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn danger" id="e_delete">Hapus</button>
+      <button class="btn secondary" id="e_cancel">Batal</button>
+      <button class="btn primary" id="e_save">Simpan</button>
+    </div>
+  `);
+  $('e_cancel').onclick = closeSheet;
+  $('e_delete').onclick = () => {
+    if (!confirm('Hapus titik ini?')) return;
+    orders = orders.filter(x => x.id !== o.id);
+    optimize();
+    closeSheet();
+    render();
+    drawMap();
+    saveState();
+  };
+  $('e_save').onclick = async () => {
+    o.platform = $('e_platform').value;
+    o.code = $('e_code').value.trim();
+    const newAddr = $('e_dropoff').value.trim();
+    if (!newAddr) { toast('Alamat kosong', 'err'); return; }
+    
+    if (newAddr !== o.dropoff) {
+      o.dropoff = newAddr;
+      o.coords = null; // force re-geocode
+    }
+    closeSheet();
+    render();
+    saveState();
+    await geocodeOrders();
+    optimize();
+    render();
+    drawMap();
+    saveState();
+  };
+}
+
+// ================= MAP =================
+function initMap() {
+  if (!window.L) return;
+  map = L.map('map').setView([-6.2, 106.816666], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
   }).addTo(map);
 }
 
-function pinIcon(n, color){
+function pinIcon(n, color, done = false) {
+  const bg = done ? '#3a4a66' : color;
   return L.divIcon({
-    className:'',
-    html:`<div style="background:${color};color:#07101e;border:2px solid white;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);width:30px;height:30px;display:grid;place-items:center;font-weight:900;box-shadow:0 2px 8px #0008"><span style="transform:rotate(45deg)">${n}</span></div>`,
-    iconSize:[30,30],
-    iconAnchor:[15,28]
+    className: '',
+    html: `<div style="background:${bg};color:#fff;border:2px solid #fff;border-radius:50%;width:28px;height:28px;display:grid;place-items:center;font-weight:900;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.5)">${n}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
   });
 }
 
-function drawMap(){
-  if(!map) return;
-  markers.forEach(m=>map.removeLayer(m));
+function drawMap() {
+  if (!map) return;
+  markers.forEach(m => map.removeLayer(m));
   markers = [];
-  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+  if (routeLine) {
+    map.removeLayer(routeLine);
+    routeLine = null;
+  }
 
   const pts = [];
-  if(currentLoc){
-    const m = L.circleMarker([currentLoc.lat, currentLoc.lon], {
-      radius:8, color:'#fff', weight:2, fillColor:'#218cff', fillOpacity:1
-    }).addTo(map).bindPopup('Lokasi saya');
-    markers.push(m);
+  if (currentLoc) {
+    markers.push(
+      L.circleMarker([currentLoc.lat, currentLoc.lon], {
+        radius: 9,
+        color: '#fff',
+        fillColor: '#218cff',
+        fillOpacity: 1,
+        weight: 2
+      }).addTo(map).bindPopup('Lokasi Saya')
+    );
     pts.push([currentLoc.lat, currentLoc.lon]);
   }
 
-  orders.forEach((o,i)=>{
-    if(!o.coords) return;
-    const color = o.platform==='Grab' ? '#24c78a' : '#ff8b2b';
-    const m = L.marker([o.coords.lat, o.coords.lon], {icon:pinIcon(i+1, color)})
-      .addTo(map)
-      .bindPopup(`<b>${i+1}. ${escapeHtml(o.platform)}</b><br>${escapeHtml(o.name)}<br>${escapeHtml(o.dropoff)}`);
-    markers.push(m);
+  // Marker semua titik
+  orders.forEach((o, i) => {
+    if (!o.coords) return;
+    const color = o.platform === 'Grab' ? '#20c58a' : '#ff8b2b';
+    markers.push(
+      L.marker([o.coords.lat, o.coords.lon], {
+        icon: pinIcon(i + 1, color, o.done)
+      }).addTo(map).bindPopup(`<b>${escapeHtml(o.name)}</b><br>${escapeHtml(o.dropoff)}`)
+    );
     pts.push([o.coords.lat, o.coords.lon]);
   });
 
-  const coordsOnly = orders.filter(o=>o.coords).map(o=>[o.coords.lat, o.coords.lon]);
-  if(coordsOnly.length > 1){
-    routeLine = L.polyline(coordsOnly, {
-      color:'#74aaff', weight:3, opacity:.8, dashArray:'7 7'
-    }).addTo(map);
-  }
-
-  if(pts.length){
-    map.fitBounds(pts, {padding:[25,25], maxZoom:14});
-    $('mapLabel').textContent = pts.length + ' lokasi di peta';
-  }else{
-    $('mapLabel').textContent = 'Belum ada koordinat';
-  }
-}
-
-$('fullscreenBtn').onclick = ()=>{
-  const mp = $('map');
-  mp.classList.toggle('fullscreen-map');
-  document.body.classList.toggle('fullscreen-mode');
-  if(map) setTimeout(()=>map.invalidateSize(), 150);
-};
-$('closeFullscreenBtn').onclick = ()=>{
-  const mp = $('map');
-  mp.classList.remove('fullscreen-map');
-  document.body.classList.remove('fullscreen-mode');
-  if(map) setTimeout(()=>map.invalidateSize(), 150);
-};
-
-/* ============ EKSPOR / IMPOR ============ */
-function exportData(){
-  const blob = new Blob([JSON.stringify({app:'BUNGLONIN', version:2, orders}, null, 2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'bunglonin-orders.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-function exportText(){
-  if(!orders.length) return;
-  const lines = orders.map((o,i)=>`${i+1}. [${o.platform}] ${o.name}\n   ${o.dropoff}${o.done?' (selesai)':''}`).join('\n\n');
-  const blob = new Blob([lines], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'bunglonin-rute.txt';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-$('importInput').addEventListener('change', e=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const r = new FileReader();
-  r.onload = ()=>{
-    try{
-      const d = JSON.parse(r.result);
-      if(!Array.isArray(d.orders)) throw new Error('Format tidak sesuai');
-      if(!confirm('Ganti semua order dengan data impor?')) return;
-      orders = d.orders.map((o,i)=>({
-        id: o.id || i+1,
-        platform: o.platform || 'ShopeeFood',
-        name: o.name || `Order ${i+1}`,
-        pickup: o.pickup || '',
-        dropoff: o.dropoff || '',
-        done: !!o.done,
-        coords: o.coords || null,
-        pickCoords: o.pickCoords || null
-      }));
-      nextId = Math.max(0, ...orders.map(o=>o.id)) + 1;
-      render(); drawMap(); saveState();
-      showTab('manage');
-      setStatus('routeStatus','Impor berhasil.','ok');
-    }catch(err){
-      setStatus('routeStatus','Impor gagal: '+err.message,'err');
+  // Route line HANYA untuk yang masih aktif (belum done)
+  const activeWithCoords = orders.filter(o => !o.done && o.coords);
+  if (activeWithCoords.length >= 1) {
+    const linePts = [];
+    if (currentLoc) linePts.push([currentLoc.lat, currentLoc.lon]);
+    activeWithCoords.forEach(o => linePts.push([o.coords.lat, o.coords.lon]));
+    
+    if (linePts.length >= 2) {
+      routeLine = L.polyline(linePts, {
+        color: '#5fa8ff',
+        weight: 4,
+        opacity: 0.85,
+        dashArray: '8 6'
+      }).addTo(map);
     }
-  };
-  r.readAsText(f);
-  e.target.value = '';
-});
+  }
 
-function clearAll(){
-  if(!confirm('Hapus semua order dari daftar? Tindakan ini tidak bisa dibatalkan.')) return;
-  orders = [];
-  nextId = 1;
-  render(); drawMap(); saveState();
-  setStatus('routeStatus','Semua order sudah dihapus.');
+  if (pts.length) {
+    map.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+  }
+  
+  const activeCount = orders.filter(o => !o.done).length;
+  $('mapLabel').textContent = `${activeCount} Aktif / ${orders.length} Total`;
 }
 
-/* ============ INIT ============ */
+// Fullscreen
+$('fullscreenBtn').onclick = () => {
+  $('map').classList.toggle('fullscreen-map');
+  $('closeFullscreenBtn').classList.toggle('hidden');
+  setTimeout(() => map && map.invalidateSize(), 150);
+};
+$('closeFullscreenBtn').onclick = () => {
+  $('map').classList.remove('fullscreen-map');
+  $('closeFullscreenBtn').classList.add('hidden');
+  setTimeout(() => map && map.invalidateSize(), 150);
+};
+
+$('markAllBtn').onclick = () => {
+  orders.forEach(o => o.done = true);
+  optimize();
+  render();
+  drawMap();
+  saveState();
+};
+$('clearDoneBtn').onclick = () => {
+  if (!orders.some(o => o.done)) {
+    toast('Tidak ada yang selesai', 'err');
+    return;
+  }
+  orders = orders.filter(o => !o.done);
+  optimize();
+  render();
+  drawMap();
+  saveState();
+};
+$('fabAdd').onclick = () => {
+  showTab('add');
+  setTimeout(() => $('dropoff').focus(), 200);
+};
+
+// ================= INIT =================
 loadState();
 initMap();
 render();
 drawMap();
-showTab(activeTab);
 
-/* Jika ada perubahan state dari tab lain, tidak perlu listener khusus. */
+// Auto re-geocode yang masih null setelah load
+geocodeOrders().then(() => {
+  optimize();
+  render();
+  drawMap();
+  saveState();
+});
+
+showTab('route');
 </script>
 </body>
 </html>

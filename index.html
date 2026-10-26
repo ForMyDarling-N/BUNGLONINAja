@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BUNGLONIN — Rute Kurir</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b1020;--panel:#121c30;--panel2:#192741;--line:#293a55;--txt:#f4f7ff;--muted:#aab8d0;--orange:#ff8b2b;--green:#24c78a;--blue:#68aaff;--red:#ff6678}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit}
+button{border:0;border-radius:12px;padding:12px 16px;font-weight:700;background:var(--orange);color:#241407;cursor:pointer;transition:transform .06s ease,opacity .1s}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.secondary{background:#263651;color:var(--txt);border:1px solid #3b4d6c}
+.green{background:var(--green);color:#062719}
+.danger{background:#4c2635;color:#ffdce3}
+.blue{background:#1f4a7a;color:#dbeaff}
+.top{position:sticky;top:0;z-index:900;background:#101a2ded;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:12px 15px;display:flex;align-items:center;gap:12px}
+.brand{font-size:20px;font-weight:900;letter-spacing:.5px}
+.brand span{color:var(--orange)}
+.tag{font-size:11px;color:var(--muted)}
+.menu{font-size:20px;background:#24334d;color:white;padding:8px 12px}
+.shell{max-width:1200px;margin:auto;padding:14px}
+.nav{display:flex;gap:8px;overflow:auto;padding-bottom:12px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{white-space:nowrap;background:#1b2941;color:#c6d4ea;border:1px solid var(--line)}
+.nav button.active{background:var(--orange);color:#241407;border-color:var(--orange)}
+.layout{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:900px){.layout{grid-template-columns:400px minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:13px;min-width:0}
+.card h2{font-size:16px;margin:0 0 10px}
+.muted{color:var(--muted);font-size:13px}
+.uploadbox{border:1.5px dashed #526787;background:#0e1728;border-radius:14px;padding:16px;text-align:center}
+.uploadbox input{display:block;width:100%;margin:12px 0;color:var(--muted);font-size:13px}
+.thumbs{display:flex;gap:8px;overflow:auto;margin-top:10px;padding-bottom:4px}
+.thumbs img{height:112px;width:auto;max-width:160px;object-fit:contain;border-radius:9px;border:1px solid var(--line);background:#080e19}
+.field{margin:10px 0}
+.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:#0b1425;color:var(--txt);border:1px solid #344761;border-radius:10px;padding:12px}
+.field textarea{min-height:78px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1;min-width:90px}
+.status{padding:10px 12px;border-radius:10px;background:#1c2b43;color:#c6d8f1;font-size:13px;margin-top:10px;word-break:break-word}
+.status.err{background:#442330;color:#ffd9df}
+.status.ok{background:#15372e;color:#b8f5dc}
+.pill{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:800;white-space:nowrap}
+.shopee{background:#4a2a18;color:#ffb66f}
+.grab{background:#143b30;color:#75efbc}
+.stop{border:1px solid var(--line);background:#101a2c;border-radius:12px;padding:12px;margin-top:9px;transition:opacity .2s}
+.stophead{display:flex;align-items:center;gap:8px}
+.num{width:28px;height:28px;border-radius:9px;background:#273a57;display:grid;place-items:center;font-weight:900;flex:none}
+.stopname{font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.addr{color:#d5e0f2;font-size:13px;margin:8px 0;overflow-wrap:anywhere}
+.small{font-size:12px;color:var(--muted)}
+.stop .row{margin-top:8px}
+.stop button{padding:9px 10px;font-size:12px;min-width:0}
+.done{opacity:.55}
+.done .stopname{text-decoration:line-through}
+#map{height:420px;border-radius:14px;overflow:hidden;background:#152137;position:relative}
+.maptools{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.maptools button{font-size:12px;padding:10px 12px}
+.empty{padding:26px 12px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.hidden{display:none!important}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.section-title h2{margin:0}
+.footer{color:#7586a2;text-align:center;font-size:11px;padding:12px}
+.hamburger-panel{background:#101a2c;border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap}
+.hamburger-panel button{background:#22324b;color:white;font-size:13px;padding:9px 12px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.fullscreen-map{position:fixed!important;inset:0!important;z-index:2000!important;height:100vh!important;width:100vw!important;border-radius:0!important;margin:0!important}
+.close-fullscreen{position:fixed;top:14px;right:14px;z-index:2100;background:var(--red);color:white;display:none}
+body.fullscreen-mode .close-fullscreen{display:block}
+.progress{height:6px;background:#0b1425;border-radius:3px;overflow:hidden;margin-top:8px}
+.progress > div{height:100%;background:var(--orange);width:0;transition:width .2s}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="menu" id="menuBtn" aria-label="Buka menu">☰</button>
+  <div>
+    <div class="brand">BUNGLO<span>NIN</span></div>
+    <div class="tag">Penyatu rute ShopeeFood + Grab</div>
+  </div>
+  <div style="margin-left:auto;text-align:right">
+    <div id="orderCount" style="font-weight:800">0 titik</div>
+    <div class="tag">rute aktif</div>
+  </div>
+</header>
+
+<main class="shell">
+  <div id="menuPanel" class="hamburger-panel hidden">
+    <button onclick="showTab('route')">📍 Rute & Peta</button>
+    <button onclick="showTab('add')">➕ Tambah</button>
+    <button onclick="showTab('manage')">📋 Daftar</button>
+    <button onclick="exportData()">⬇️ Ekspor JSON</button>
+    <button onclick="exportText()">📄 Ekspor teks</button>
+    <button onclick="document.getElementById('importInput').click()">⬆️ Impor JSON</button>
+    <button onclick="clearAll()">🗑️ Reset semua</button>
+    <input id="importInput" type="file" accept="application/json" class="hidden">
+  </div>
+
+  <nav class="nav">
+    <button class="active" data-tab="route" onclick="showTab('route')">Rute & Peta</button>
+    <button data-tab="add" onclick="showTab('add')">Masukkan Foto / Pesanan</button>
+    <button data-tab="manage" onclick="showTab('manage')">Daftar Pesanan</button>
+  </nav>
+
+  <div class="layout">
+    <section id="leftCol">
+      <div class="card tabpage" id="tab-add">
+        <h2>1. Masukkan screenshot pesanan</h2>
+        <p class="muted">Pilih satu atau beberapa screenshot dari galeri HP. Gambar akan tampil dulu sebelum OCR dijalankan.</p>
+        <div class="uploadbox">
+          <strong>Pilih foto dari galeri</strong>
+          <input id="photoInput" type="file" accept="image/*" multiple>
+          <div class="muted">JPG, PNG, atau screenshot. Pilih bagian detail alamat pesanan — bukan cuma peta.</div>
+        </div>
+        <div id="thumbs" class="thumbs"></div>
+        <div class="row" style="margin-top:12px">
+          <button id="ocrBtn" disabled>Scan teks di foto</button>
+          <button class="secondary" id="clearPhotosBtn">Hapus foto</button>
+        </div>
+        <div id="ocrStatus" class="status">Belum ada foto dipilih. Kalau OCR gagal, alamat tetap bisa dimasukkan manual di bawah.</div>
+        <div class="progress hidden" id="ocrProgress"><div></div></div>
+        <div class="field">
+          <label>Hasil teks OCR (boleh diedit / salin alamat yang benar)</label>
+          <textarea id="ocrText" placeholder="Hasil bacaan teks foto akan muncul di sini..."></textarea>
+        </div>
+        <div class="row">
+          <button class="secondary" id="useTextBtn">Pakai sebagai alamat</button>
+          <button class="secondary" id="copyOcrBtn">Salin teks</button>
+          <button class="secondary" id="manualFocusBtn">Input manual</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Tambah atau koreksi titik</h2>
+        <p class="muted">Masukkan alamat tujuan yang terlihat pada detail order. Setiap order bisa punya titik jemput dan titik antar.</p>
+        <div class="field">
+          <label>Platform</label>
+          <select id="platform">
+            <option value="ShopeeFood">ShopeeFood</option>
+            <option value="Grab">Grab</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nama / nomor order (opsional)</label>
+          <input id="orderName" placeholder="Mis. SF-01 / Grab order 2">
+        </div>
+        <div class="field">
+          <label>Alamat jemput restoran (opsional)</label>
+          <textarea id="pickup" placeholder="Alamat pickup restoran"></textarea>
+        </div>
+        <div class="field">
+          <label>Alamat antar pelanggan (wajib)</label>
+          <textarea id="dropoff" placeholder="Alamat lengkap dari detail pesanan"></textarea>
+        </div>
+        <div class="row">
+          <button id="addOrderBtn">Tambah ke rute</button>
+          <button class="secondary" id="clearFormBtn">Kosongkan</button>
+        </div>
+        <div id="addStatus" class="status">Alamat yang belum lengkap bisa dikoreksi kapan saja dari daftar pesanan.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="card tabpage" id="tab-route">
+        <div class="section-title">
+          <h2>Peta rute</h2>
+          <span class="small" id="mapLabel">Titik akan muncul setelah alamat ditambahkan</span>
+        </div>
+        <div id="map" style="margin-top:12px"></div>
+        <div class="maptools">
+          <button class="secondary" id="locBtn">📍 Lokasi saya</button>
+          <button class="secondary" id="recalcBtn">🔄 Susun ulang</button>
+          <button class="secondary" id="allMapsBtn">🗺️ Buka rute di Maps</button>
+          <button class="secondary" id="fullscreenBtn">⛶ Perbesar</button>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:#ff8b2b"></i> ShopeeFood</span>
+          <span><i class="dot" style="background:#24c78a"></i> Grab</span>
+          <span><i class="dot" style="background:#218cff"></i> Lokasi saya</span>
+        </div>
+        <div class="status" id="routeStatus">Peta menggunakan geocoding online. Pastikan internet aktif. Urutan terdekat dihitung dari koordinat garis lurus; Google Maps dipakai untuk navigasi jalan.</div>
+      </div>
+
+      <div class="card tabpage" id="tab-manage">
+        <div class="section-title">
+          <h2>Urutan kunjungan</h2>
+          <span class="small" id="listCount">0 titik</span>
+        </div>
+        <p class="muted">Tandai selesai agar titik itu tidak ikut diatur ulang. Tambahan order akan disisipkan ke rute yang belum selesai.</p>
+        <div class="row" style="margin-bottom:10px">
+          <button class="secondary" id="markAllBtn">✅ Tandai semua selesai</button>
+          <button class="danger" id="clearDoneBtn">🗑️ Hapus yang selesai</button>
+        </div>
+        <div id="stopList"><div class="empty">Belum ada alamat. Tambahkan pesanan di tab “Masukkan Foto / Pesanan”.</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Catatan penting</h2>
+        <p class="muted">BUNGLONIN membantu menyusun titik dan membuka navigasi. OCR bisa salah membaca alamat, jadi periksa hasilnya. Jarak antar titik yang ditampilkan adalah perkiraan garis lurus, bukan jarak jalan aktual.</p>
+      </div>
+    </section>
+  </div>
+  <div class="footer">BUNGLONIN · Simpan file ini lalu buka dengan browser. Fitur OCR dan peta memerlukan internet.</div>
+</main>
+
+<button class="close-fullscreen" id="closeFullscreenBtn">✕ Tutup peta</button>
+
+<script>
+/* ============ UTIL ============ */
+const $ = id => document.getElementById(id);
+const LS_KEY = 'bunglonin_state_v2';
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+/* ============ STATE ============ */
+let photos = [];
+let orders = [];
+let nextId = 1;
+let currentLoc = null;
+let map = null;
+let markers = [];
+let routeLine = null;
+let geoCache = {};
+let activeTab = 'route';
+
+/* ============ PERSISTENCE ============ */
+function saveState(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      orders,
+      nextId,
+      currentLoc
+    }));
+  }catch(e){ console.warn('Gagal simpan state', e); }
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(Array.isArray(d.orders)) orders = d.orders;
+    if(typeof d.nextId === 'number') nextId = d.nextId;
+    if(d.currentLoc) currentLoc = d.currentLoc;
+  }catch(e){ console.warn('Gagal muat state', e); }
+}
+
+/* ============ TAB ============ */
+function showTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('.tabpage').forEach(x=>x.classList.add('hidden'));
+  const el = $('tab-'+tab);
+  if(el) el.classList.remove('hidden');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  $('menuPanel').classList.add('hidden');
+  if(map) setTimeout(()=>map.invalidateSize(), 120);
+}
+$('menuBtn').onclick = ()=> $('menuPanel').classList.toggle('hidden');
+
+/* ============ STATUS ============ */
+function setStatus(id, msg, type=''){
+  const el = $(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+/* ============ FOTO & OCR ============ */
+$('photoInput').addEventListener('change', e=>{
+  photos = Array.from(e.target.files||[]);
+  $('thumbs').innerHTML = '';
+  photos.forEach(f=>{
+    const im = document.createElement('img');
+    im.alt = f.name;
+    im.src = URL.createObjectURL(f);
+    $('thumbs').appendChild(im);
+  });
+  $('ocrBtn').disabled = !photos.length;
+  setStatus('ocrStatus',
+    photos.length ? `${photos.length} foto siap dipindai. Tekan “Scan teks di foto”.` : 'Belum ada foto dipilih.',
+    photos.length ? 'ok' : ''
+  );
+});
+
+$('clearPhotosBtn').onclick = ()=>{
+  $('photoInput').value = '';
+  photos = [];
+  $('thumbs').innerHTML = '';
+  $('ocrBtn').disabled = true;
+  $('ocrProgress').classList.add('hidden');
+  setStatus('ocrStatus','Foto dibersihkan.');
+};
+
+function loadOCR(){
+  return new Promise((resolve, reject)=>{
+    if(window.Tesseract) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload = resolve;
+    s.onerror = ()=> reject(new Error('CDN OCR tidak dapat diakses'));
+    document.head.appendChild(s);
+  });
+}
+
+$('ocrBtn').onclick = async ()=>{
+  if(!photos.length) return;
+  const btn = $('ocrBtn');
+  btn.disabled = true;
+  const prog = $('ocrProgress');
+  const bar = prog.firstElementChild;
+  prog.classList.remove('hidden');
+  bar.style.width = '0%';
+  try{
+    await loadOCR();
+    const all = [];
+    for(let i=0;i<photos.length;i++){
+      setStatus('ocrStatus', `Membaca foto ${i+1}/${photos.length}…`);
+      const result = await Tesseract.recognize(photos[i], 'ind+eng', {
+        logger: m=>{
+          if(m.status === 'recognizing text'){
+            const p = Math.round((m.progress||0)*100);
+            bar.style.width = p + '%';
+            setStatus('ocrStatus', `Membaca foto ${i+1}/${photos.length}: ${p}%`);
+          }
+        }
+      });
+      all.push(`--- FOTO ${i+1} ---\n${result.data.text||''}`);
+    }
+    $('ocrText').value = all.join('\n\n');
+    bar.style.width = '100%';
+    setStatus('ocrStatus','Selesai. Periksa teks dan salin alamat ANTAR yang benar ke kolom alamat pelanggan.','ok');
+  }catch(err){
+    setStatus('ocrStatus','OCR gagal dimuat/dijalankan. Periksa internet lalu coba lagi, atau masukkan alamat secara manual. Detail: '+(err.message||err),'err');
+  }finally{
+    btn.disabled = false;
+    setTimeout(()=>prog.classList.add('hidden'), 1500);
+  }
+};
+
+function cleanOcrLines(text){
+  const drop = /(detail pesanan|pesanan selesai|estimasi|total pembayaran|metode pembayaran|hubungi|chat driver|lihat peta|pesanan diterima|driver menuju|tiba di lokasi|biaya antar|ongkos|promo|voucher|kode pesanan|order id|status pesanan)/i;
+  return text.split(/\n/)
+    .map(s=>s.replace(/[|_~`^]+/g,'').trim())
+    .filter(s=>s.length>10 && !drop.test(s) && !/^foto \d+/i.test(s));
+}
+
+$('useTextBtn').onclick = ()=>{
+  const t = $('ocrText').value.trim();
+  if(!t){
+    setStatus('addStatus','Belum ada teks OCR untuk dipakai.','err');
+    return;
+  }
+  const lines = cleanOcrLines(t);
+  $('dropoff').value = lines.slice(-6).join('\n');
+  showTab('add');
+  setStatus('addStatus','Teks awal dimasukkan. Periksa dan rapikan agar hanya alamat antar yang benar.','ok');
+};
+
+$('copyOcrBtn').onclick = async ()=>{
+  const t = $('ocrText').value;
+  if(!t) return;
+  try{
+    await navigator.clipboard.writeText(t);
+    setStatus('ocrStatus','Teks OCR disalin ke clipboard.','ok');
+  }catch(e){
+    setStatus('ocrStatus','Gagal menyalin. Blok teks lalu salin manual.','err');
+  }
+};
+
+$('manualFocusBtn').onclick = ()=>{
+  $('dropoff').focus();
+  showTab('add');
+};
+
+/* ============ TAMBAH ORDER ============ */
+$('addOrderBtn').onclick = ()=>{
+  const platform = $('platform').value;
+  const name = $('orderName').value.trim();
+  const pickup = $('pickup').value.trim();
+  const dropoff = $('dropoff').value.trim();
+  if(!dropoff){
+    setStatus('addStatus','Alamat antar wajib diisi dulu.','err');
+    $('dropoff').focus();
+    return;
+  }
+  const order = {
+    id: nextId++,
+    platform,
+    name: name || `${platform} #${nextId-1}`,
+    pickup,
+    dropoff,
+    done: false,
+    coords: null,
+    pickCoords: null
+  };
+  orders.push(order);
+  ['orderName','pickup','dropoff'].forEach(id=>$(id).value='');
+  setStatus('addStatus','Pesanan ditambahkan. Sedang mencari koordinat alamat…','ok');
+  render();
+  saveState();
+  geocodeOrders().then(()=>{
+    optimize();
+    render();
+    drawMap();
+    saveState();
+    setStatus('addStatus','Pesanan siap. Koordinat diperbarui.','ok');
+  });
+};
+
+$('clearFormBtn').onclick = ()=>['orderName','pickup','dropoff'].forEach(id=>$(id).value='');
+
+/* ============ GEOCODING ============ */
+async function geocode(address){
+  if(!address) return null;
+  if(geoCache[address]) return geoCache[address];
+  try{
+    const u = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(address+', Indonesia');
+    const r = await fetch(u, {headers:{'Accept-Language':'id'}});
+    if(!r.ok) return null;
+    const d = await r.json();
+    const c = d[0] ? {lat:+d[0].lat, lon:+d[0].lon, label:d[0].display_name} : null;
+    geoCache[address] = c;
+    return c;
+  }catch(e){ return null; }
+}
+
+async function geocodeOrders(){
+  for(const o of orders){
+    if(!o.coords) o.coords = await geocode(o.dropoff);
+    if(o.pickup && !o.pickCoords) o.pickCoords = await geocode(o.pickup);
+  }
+}
+
+/* ============ OPTIMIZE ============ */
+function optimize(){
+  const pending = orders.filter(o=>!o.done);
+  const done = orders.filter(o=>o.done);
+  if(pending.length < 2) return;
+  const start = currentLoc || {lat:-6.2, lon:106.816666};
+  const sorted = [];
+  const remaining = [...pending];
+  let cur = start;
+  while(remaining.length){
+    let best = 0, bestD = Infinity;
+    remaining.forEach((o,i)=>{
+      if(!o.coords) return;
+      const d = dist(cur, o.coords);
+      if(d < bestD){ bestD = d; best = i; }
+    });
+    if(!Number.isFinite(bestD)){
+      sorted.push(...remaining);
+      break;
+    }
+    const n = remaining.splice(best,1)[0];
+    sorted.push(n);
+    cur = n.coords;
+  }
+  orders = [...done, ...sorted];
+}
+
+function dist(a,b){
+  const rad = x=>x*Math.PI/180;
+  const dl = rad(b.lat-a.lat), dn = rad(b.lon-a.lon);
+  const v = Math.sin(dl/2)**2 + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dn/2)**2;
+  return 6371*2*Math.atan2(Math.sqrt(v), Math.sqrt(1-v));
+}
+
+$('recalcBtn').onclick = async ()=>{
+  setStatus('routeStatus','Mencari koordinat alamat dan menyusun ulang titik…');
+  await geocodeOrders();
+  optimize();
+  render();
+  drawMap();
+  saveState();
+  setStatus('routeStatus','Rute titik yang belum selesai sudah disusun ulang berdasarkan jarak garis lurus. Navigasi jalan tetap dibuka lewat Google Maps.','ok');
+};
+
+/* ============ LOKASI ============ */
+$('locBtn').onclick = ()=>{
+  if(!navigator.geolocation){
+    setStatus('routeStatus','Browser tidak mendukung lokasi.','err');
+    return;
+  }
+  setStatus('routeStatus','Meminta izin lokasi…');
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      currentLoc = {lat:p.coords.latitude, lon:p.coords.longitude};
+      setStatus('routeStatus','Lokasi saat ini berhasil didapat. Susun ulang rute untuk memakai lokasi sebagai titik awal.','ok');
+      drawMap();
+      saveState();
+    },
+    e=>setStatus('routeStatus','Lokasi gagal diakses. Izinkan lokasi di browser atau tambahkan titik secara manual.','err'),
+    {enableHighAccuracy:true, timeout:12000}
+  );
+};
+
+/* ============ NAVIGASI ============ */
+function googleUrl(o){
+  return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(o.dropoff)+'&travelmode=driving';
+}
+
+$('allMapsBtn').onclick = ()=>{
+  const pending = orders.filter(o=>!o.done);
+  if(!pending.length){
+    setStatus('routeStatus','Belum ada titik aktif untuk dibuka di Maps.','err');
+    return;
+  }
+  let url = 'https://www.google.com/maps/dir/?api=1';
+  url += '&origin=' + encodeURIComponent(currentLoc ? `${currentLoc.lat},${currentLoc.lon}` : '');
+  url += '&destination=' + encodeURIComponent(pending[pending.length-1].dropoff);
+  if(pending.length > 1){
+    url += '&waypoints=' + encodeURIComponent(pending.slice(0,-1).map(o=>o.dropoff).join('|'));
+  }
+  url += '&travelmode=driving';
+  window.open(url,'_blank','noopener');
+};
+
+/* ============ RENDER DAFTAR ============ */
+function render(){
+  $('orderCount').textContent = orders.length + ' order';
+  $('listCount').textContent = orders.length + ' titik antar';
+  const el = $('stopList');
+  if(!orders.length){
+    el.innerHTML = '<div class="empty">Belum ada alamat. Tambahkan pesanan di tab “Masukkan Foto / Pesanan”.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  orders.forEach((o,i)=>{
+    const div = document.createElement('div');
+    div.className = 'stop' + (o.done?' done':'');
+    let distTxt = 'Koordinat belum tersedia';
+    if(o.coords && i>0 && orders[i-1].coords){
+      distTxt = `Perkiraan dari titik sebelumnya: ${dist(orders[i-1].coords,o.coords).toFixed(1)} km garis lurus`;
+    }else if(o.coords){
+      distTxt = 'Titik awal rute';
+    }
+    div.innerHTML = `
+      <div class="stophead">
+        <div class="num">${i+1}</div>
+        <div class="stopname"></div>
+        <span class="pill ${o.platform==='Grab'?'grab':'shopee'}">${escapeHtml(o.platform)}</span>
+      </div>
+      <div class="addr"></div>
+      <div class="small"></div>
+      <div class="row">
+        <button class="secondary navbtn">Navigasi</button>
+        <button class="secondary copybtn">Salin</button>
+        <button class="secondary editbtn">Edit</button>
+        <button class="${o.done?'secondary':'green'} donebtn">${o.done?'Batalkan':'Selesai'}</button>
+        <button class="danger delbtn">Hapus</button>
+      </div>`;
+    div.querySelector('.stopname').textContent = o.name;
+    div.querySelector('.addr').textContent = o.dropoff;
+    div.querySelector('.small').textContent = distTxt;
+    div.querySelector('.navbtn').onclick = ()=>window.open(googleUrl(o),'_blank','noopener');
+    div.querySelector('.copybtn').onclick = async ()=>{
+      try{
+        await navigator.clipboard.writeText(o.dropoff);
+        setStatus('routeStatus','Alamat disalin.','ok');
+      }catch(e){
+        setStatus('routeStatus','Gagal menyalin alamat.','err');
+      }
+    };
+    div.querySelector('.donebtn').onclick = ()=>{
+      o.done = !o.done;
+      render(); drawMap(); saveState();
+    };
+    div.querySelector('.delbtn').onclick = ()=>{
+      orders = orders.filter(x=>x.id!==o.id);
+      render(); drawMap(); saveState();
+    };
+    div.querySelector('.editbtn').onclick = ()=>{
+      $('platform').value = o.platform;
+      $('orderName').value = o.name;
+      $('pickup').value = o.pickup;
+      $('dropoff').value = o.dropoff;
+      orders = orders.filter(x=>x.id!==o.id);
+      render(); drawMap(); saveState();
+      showTab('add');
+      setStatus('addStatus','Edit alamat, lalu tekan Tambah ke rute.','ok');
+    };
+    el.appendChild(div);
+  });
+}
+
+$('markAllBtn').onclick = ()=>{
+  orders.forEach(o=>o.done=true);
+  render(); drawMap(); saveState();
+};
+$('clearDoneBtn').onclick = ()=>{
+  if(!orders.some(o=>o.done)) return;
+  if(!confirm('Hapus semua order yang sudah selesai?')) return;
+  orders = orders.filter(o=>!o.done);
+  render(); drawMap(); saveState();
+};
+
+/* ============ PETA ============ */
+function initMap(){
+  if(!window.L){
+    $('map').innerHTML = '<div class="empty">Pustaka peta tidak termuat. Coba buka file saat internet aktif.</div>';
+    return;
+  }
+  map = L.map('map', {zoomControl:true}).setView([-6.2,106.816666], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+}
+
+function pinIcon(n, color){
+  return L.divIcon({
+    className:'',
+    html:`<div style="background:${color};color:#07101e;border:2px solid white;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);width:30px;height:30px;display:grid;place-items:center;font-weight:900;box-shadow:0 2px 8px #0008"><span style="transform:rotate(45deg)">${n}</span></div>`,
+    iconSize:[30,30],
+    iconAnchor:[15,28]
+  });
+}
+
+function drawMap(){
+  if(!map) return;
+  markers.forEach(m=>map.removeLayer(m));
+  markers = [];
+  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+
+  const pts = [];
+  if(currentLoc){
+    const m = L.circleMarker([currentLoc.lat, currentLoc.lon], {
+      radius:8, color:'#fff', weight:2, fillColor:'#218cff', fillOpacity:1
+    }).addTo(map).bindPopup('Lokasi saya');
+    markers.push(m);
+    pts.push([currentLoc.lat, currentLoc.lon]);
+  }
+
+  orders.forEach((o,i)=>{
+    if(!o.coords) return;
+    const color = o.platform==='Grab' ? '#24c78a' : '#ff8b2b';
+    const m = L.marker([o.coords.lat, o.coords.lon], {icon:pinIcon(i+1, color)})
+      .addTo(map)
+      .bindPopup(`<b>${i+1}. ${escapeHtml(o.platform)}</b><br>${escapeHtml(o.name)}<br>${escapeHtml(o.dropoff)}`);
+    markers.push(m);
+    pts.push([o.coords.lat, o.coords.lon]);
+  });
+
+  const coordsOnly = orders.filter(o=>o.coords).map(o=>[o.coords.lat, o.coords.lon]);
+  if(coordsOnly.length > 1){
+    routeLine = L.polyline(coordsOnly, {
+      color:'#74aaff', weight:3, opacity:.8, dashArray:'7 7'
+    }).addTo(map);
+  }
+
+  if(pts.length){
+    map.fitBounds(pts, {padding:[25,25], maxZoom:14});
+    $('mapLabel').textContent = pts.length + ' lokasi di peta';
+  }else{
+    $('mapLabel').textContent = 'Belum ada koordinat';
+  }
+}
+
+$('fullscreenBtn').onclick = ()=>{
+  const mp = $('map');
+  mp.classList.toggle('fullscreen-map');
+  document.body.classList.toggle('fullscreen-mode');
+  if(map) setTimeout(()=>map.invalidateSize(), 150);
+};
+$('closeFullscreenBtn').onclick = ()=>{
+  const mp = $('map');
+  mp.classList.remove('fullscreen-map');
+  document.body.classList.remove('fullscreen-mode');
+  if(map) setTimeout(()=>map.invalidateSize(), 150);
+};
+
+/* ============ EKSPOR / IMPOR ============ */
+function exportData(){
+  const blob = new Blob([JSON.stringify({app:'BUNGLONIN', version:2, orders}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bunglonin-orders.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function exportText(){
+  if(!orders.length) return;
+  const lines = orders.map((o,i)=>`${i+1}. [${o.platform}] ${o.name}\n   ${o.dropoff}${o.done?' (selesai)':''}`).join('\n\n');
+  const blob = new Blob([lines], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bunglonin-rute.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+$('importInput').addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const d = JSON.parse(r.result);
+      if(!Array.isArray(d.orders)) throw new Error('Format tidak sesuai');
+      if(!confirm('Ganti semua order dengan data impor?')) return;
+      orders = d.orders.map((o,i)=>({
+        id: o.id || i+1,
+        platform: o.platform || 'ShopeeFood',
+        name: o.name || `Order ${i+1}`,
+        pickup: o.pickup || '',
+        dropoff: o.dropoff || '',
+        done: !!o.done,
+        coords: o.coords || null,
+        pickCoords: o.pickCoords || null
+      }));
+      nextId = Math.max(0, ...orders.map(o=>o.id)) + 1;
+      render(); drawMap(); saveState();
+      showTab('manage');
+      setStatus('routeStatus','Impor berhasil.','ok');
+    }catch(err){
+      setStatus('routeStatus','Impor gagal: '+err.message,'err');
+    }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+});
+
+function clearAll(){
+  if(!confirm('Hapus semua order dari daftar? Tindakan ini tidak bisa dibatalkan.')) return;
+  orders = [];
+  nextId = 1;
+  render(); drawMap(); saveState();
+  setStatus('routeStatus','Semua order sudah dihapus.');
+}
+
+/* ============ INIT ============ */
+loadState();
+initMap();
+render();
+drawMap();
+showTab(activeTab);
+
+/* Jika ada perubahan state dari tab lain, tidak perlu listener khusus. */
+</script>
+</body>
+</html>
